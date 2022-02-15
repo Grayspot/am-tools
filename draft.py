@@ -1,7 +1,6 @@
 import serial.tools.list_ports
 import time
 import os
-from pprint import pprint
 
 def list_of_points(stepX,stepY):
     tab = []
@@ -41,10 +40,10 @@ def command_handler(port,cmd):
                     except(IndexError):
                         pass
     if "READ" in cmd:
-        port.reset_output_buffer()
+        #port.reset_output_buffer()
         print(port.readline().decode('ascii'))
     else:
-        port.reset_output_buffer()
+        #port.reset_input_buffer()
         port.write(cmd.encode())
         time.sleep(0.2)
 
@@ -71,9 +70,22 @@ def main():
     #    TAKING ORIGINS    #
     ########################
 
-    time.sleep(1)
-    command="INITAXISORIGINS"+os.linesep
-    ser.write(command.encode())
+    while(True):
+        command="INITAXISORIGINS"+os.linesep
+        ser.write(command.encode())
+        time.sleep(0.5)
+        try:
+            feedback=ser.readline().decode('ascii').split(',',15)
+            print(feedback[3],feedback[4])
+            if(float(feedback[3]) == 0):
+                break
+        except(IndexError):
+            ser.write(command.encode())
+
+
+    #test = "PEPEGA,GAPEPE,HUEHUE"
+    #print(test.split(',',3)[5])   
+
 
     ########################
     #       CMD LIST       #
@@ -88,7 +100,7 @@ def main():
     ########################
 
     while(command!="exit"):
-        os.system('cls' if os.name == 'nt' else 'clear') # <--- put this line in comm so that it doesn't clear the terminal
+        #os.system('cls' if os.name == 'nt' else 'clear') # <--- put this line in comm so that it doesn't clear the terminal
 
         ser.reset_input_buffer()
         command=input(">> ")
