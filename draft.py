@@ -9,36 +9,40 @@ def list_of_points(stepX,stepY):
             tab.append(str(x)+","+str(y))
     return tab
 
+def series(port,tab):
+    for i in tab:
+        x=float(i.split(",")[0])
+        y=float(i.split(",")[1])
+        cmd="GOTOPOSITION,"+i+os.linesep
+        port.reset_input_buffer()
+        port.reset_output_buffer()
+        port.write(cmd.encode())
+        
+        clear = False
+        cpt = 0
+        while not clear:
+            try:
+                port.reset_output_buffer()
+                feedback=port.readline().decode('ascii')
+                time.sleep(0.1)
+                if(feedback==port.readline().decode('ascii')):
+                    cpt+=1
+                
+                if(cpt>3):
+                    clear = True     
+            except(IndexError):
+                pass
+
 def command_handler(port,cmd):
-    time.sleep(1)
+    #time.sleep(1)
+    if "LIST" in cmd:
+        points = ["120,50","50,120","66, 300","700,700","0,0"]
+        series(port,points)
     if "STEP" in cmd:
             stepX=cmd.split(",",3)[1]
             stepY=cmd.split(",",3)[2]
-            posX=0
-            posY=0
             tab=list_of_points(int(stepX),int(stepY))
-            for i in tab:
-                x=float(i.split(",")[0])
-                y=float(i.split(",")[1])
-                cmd="GOTOPOSITION,"+i+os.linesep
-                port.reset_input_buffer()
-                port.reset_output_buffer()
-                port.write(cmd.encode())
-                
-                clear = False
-                cpt = 0
-                while not clear:
-                    try:
-                        port.reset_output_buffer()
-                        feedback=port.readline().decode('ascii')
-                        time.sleep(0.1)
-                        if(feedback==port.readline().decode('ascii')):
-                            cpt+=1
-                        
-                        if(cpt>3):
-                            clear = True     
-                    except(IndexError):
-                        pass
+            series(port,tab)
     if "READ" in cmd:
         #port.reset_output_buffer()
         print(port.readline().decode('ascii'))
@@ -69,24 +73,19 @@ def main():
     ########################
     #    TAKING ORIGINS    #
     ########################
-
+    '''
     while(True):
-        command="INITAXISORIGINS"+os.linesep
+        command="INITAXISORIGINS\r\n"
         ser.write(command.encode())
-        time.sleep(0.5)
         try:
             feedback=ser.readline().decode('ascii').split(',',15)
-            print(feedback[3],feedback[4])
+            print(feedback[1],feedback[2])
             if(float(feedback[3]) == 0):
                 break
         except(IndexError):
+            time.sleep(1)
             ser.write(command.encode())
-
-
-    #test = "PEPEGA,GAPEPE,HUEHUE"
-    #print(test.split(',',3)[5])   
-
-
+    '''
     ########################
     #       CMD LIST       #
     ########################
@@ -104,7 +103,7 @@ def main():
 
         ser.reset_input_buffer()
         command=input(">> ")
-        if(command!="exit"):
+        if(command!="EXIT"):
             command=command+os.linesep
             ser.reset_input_buffer()
             ser.reset_output_buffer()
